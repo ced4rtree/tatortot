@@ -30,7 +30,7 @@ public class Intake extends SubsystemBase {
         //
         // brake mode is enabled, so the motor will have an active braking force
         // applied when not in use
-        // 
+        //
         // A current limit of 25 amps is applied, so the motor will not exceed
         // this limit and burn out
 
