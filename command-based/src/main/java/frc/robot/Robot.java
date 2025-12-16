@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.SimpleKraken;
 
 public class Robot extends TimedRobot {
     private Command autonomousCommand;
@@ -23,6 +24,7 @@ public class Robot extends TimedRobot {
     private Drivetrain drivetrain;
     private Intake intake;
     private Shooter shooter;
+    private SimpleKraken simpleKraken;
 
     public Robot() {
         controller = new CommandXboxController(0);
@@ -30,6 +32,10 @@ public class Robot extends TimedRobot {
         drivetrain = new Drivetrain();
         intake = new Intake();
         shooter = new Shooter();
+        simpleKraken = new SimpleKraken();
+
+        // have the kraken follow the value of the right trigger by default
+        simpleKraken.setDefaultCommand(simpleKraken.runVoltage(controller::getRightTriggerAxis))Trigger;
 
         // if no other command is running on the drivetrain, make it drive
         drivetrain.setDefaultCommand(
@@ -42,7 +48,7 @@ public class Robot extends TimedRobot {
             .whileTrue(intake.feed());
 
         // when the right trigger is held, and the sensor is hit, shoot the game piece
-        controller.rightTrigger().and(intake.gamePieceDetected)
+        controller.rightBumper().and(intake.gamePieceDetected)
             .onTrue(shooter.shoot());
 
         // once the gamepiece has left the sensor for 0.5 seconds, stop shooting
