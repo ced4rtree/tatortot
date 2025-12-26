@@ -2,9 +2,15 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -15,7 +21,7 @@ public class Intake extends SubsystemBase {
     // motor things.  `private` says that only this file can reference these
     // variables, and it is generally good practive to make all variables at the
     // top level of a file private
-    // private SparkMax motor;
+    private SparkMax motor;
     private DigitalInput sensor;
 
     public final Trigger gamePieceDetected;
@@ -23,7 +29,7 @@ public class Intake extends SubsystemBase {
     public Intake() {
         // creates a new SparkMax object and assigns it to the `motor`
         // variable. Motor has an ID of 1, and is specified as brushless
-        // motor = new SparkMax(1, SparkLowLevel.MotorType.kBrushless);
+        motor = new SparkMax(1, MotorType.kBrushless);
 
         // creates a default configuration for the motor with two notable
         // exceptions:
@@ -37,11 +43,9 @@ public class Intake extends SubsystemBase {
         // flashes the configuration to the motor controller
         // Also tells the motor controller to completely reset, and for the
         // settings to persist after reboot
-        // motor.configure(
-        //     motorConfig,
-        //     ResetMode.kResetSafeParameters,
-        //     PersistMode.kPersistParameters
-        // );
+        SparkBaseConfig motorConfig =
+                new SparkMaxConfig().idleMode(IdleMode.kBrake).smartCurrentLimit(25);
+        motor.configure(motorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         // constructs the sensor object
         sensor = new DigitalInput(0);
@@ -53,26 +57,22 @@ public class Intake extends SubsystemBase {
      * @return A {@link Command} that will run the motor forward until the sensor is hit
      */
     public Command intake() {
-        // return this.run(() -> motor.setVoltage(Volts.of(6)))
-        //     .until(sensor::get);
-        return Commands.none();
+        return this.run(() -> motor.setVoltage(Volts.of(6))).until(sensor::get);
     }
 
     /**
      * @return A {@link Command} that will run the motor forward until the sensor is dropped
      */
     public Command feed() {
-        // return this.run(() -> motor.setVoltage(Volts.of(6)))
-        //     .until(() -> !sensor.get())
-        //     .finallyDo(() -> motor.setVoltage(Volts.of(0)));
-        return Commands.none();
+        return this.run(() -> motor.setVoltage(Volts.of(6)))
+                .until(() -> !sensor.get())
+                .finallyDo(() -> motor.setVoltage(Volts.of(0)));
     }
 
     /**
      * @return A {@link Command} that will stop the motor
      */
     public Command stop() {
-        // return this.run(() -> motor.setVoltage(Volts.of(0)));
-        return Commands.none();
+        return this.run(() -> motor.setVoltage(Volts.of(0)));
     }
 }

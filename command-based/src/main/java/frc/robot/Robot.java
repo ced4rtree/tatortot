@@ -37,27 +37,27 @@ public class Robot extends LoggedRobot {
 
         controller = new CommandXboxController(0);
 
-        // drivetrain = new Drivetrain();
-        // intake = new Intake();
-        // shooter = new Shooter();
+        drivetrain = new Drivetrain();
+        intake = new Intake();
+        shooter = new Shooter();
         simpleKraken = new SimpleKraken();
 
         // have the kraken follow the value of the right trigger by default
         simpleKraken.setDefaultCommand(simpleKraken.runVoltage(controller::getRightTriggerAxis));
 
-        // // if no other command is running on the drivetrain, make it drive
-        // drivetrain.setDefaultCommand(
-        //         drivetrain.drive(controller::getLeftY, () -> -controller.getRightX()));
+        // if no other command is running on the drivetrain, make it drive
+        drivetrain.setDefaultCommand(
+                drivetrain.drive(controller::getLeftY, () -> -controller.getRightX()));
 
-        // // when the left trigger is held, and the sensor is NOT hit, run the picker motor
-        // // `whileTrue` kills that command if either condition becomes false
-        // controller.leftTrigger().and(intake.gamePieceDetected.negate()).whileTrue(intake.feed());
+        // when the left trigger is held, and the sensor is NOT hit, run the picker motor
+        // `whileTrue` kills that command if either condition becomes false
+        controller.leftTrigger().and(intake.gamePieceDetected.negate()).whileTrue(intake.feed());
 
-        // // when the right trigger is held, and the sensor is hit, shoot the game piece
-        // controller.rightBumper().and(intake.gamePieceDetected).onTrue(shooter.shoot());
+        // when the right trigger is held, and the sensor is hit, shoot the game piece
+        controller.rightBumper().and(intake.gamePieceDetected).onTrue(shooter.shoot());
 
-        // // once the gamepiece has left the sensor for 0.5 seconds, stop shooting
-        // intake.gamePieceDetected.negate().debounce(0.5).onTrue(shooter.stop());
+        // once the gamepiece has left the sensor for 0.5 seconds, stop shooting
+        intake.gamePieceDetected.negate().debounce(0.5).onTrue(shooter.stop());
     }
 
     private void configureAdvantageKit() {
