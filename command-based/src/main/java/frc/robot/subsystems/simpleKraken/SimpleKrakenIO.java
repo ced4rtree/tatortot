@@ -10,7 +10,7 @@ public interface SimpleKrakenIO {
         public double motorTemp;
     }
 
-    public default void setVoltage(double voltage) {};
+    public default void setVoltage(double voltage) {}
 
     public default void updateInputs(SimpleKrakenIOInputs inputs) {}
 }
