@@ -14,7 +14,6 @@ public class Drivetrain extends SubsystemBase {
     private PIDController pidController;
     private double initialAngle = 0.0;
 
-    
     private static final double ROTATIONS_PER_METER = 1.0;
 
     // Constructor using IO abstraction
@@ -35,8 +34,7 @@ public class Drivetrain extends SubsystemBase {
         odometry.update(
                 new Rotation2d(Math.toRadians(io.getYaw())),
                 rotationsToMeters(io.getLeftEncoderRotations()),
-                rotationsToMeters(io.getRightEncoderRotations())
-        );
+                rotationsToMeters(io.getRightEncoderRotations()));
     }
 
     // Get the robot pose from odometry
@@ -46,14 +44,17 @@ public class Drivetrain extends SubsystemBase {
 
     // Turn command using PID control
     public Command turn(double setpoint) {
-        return this.run(() -> {
-            double speed = pidController.calculate(io.getYaw(), initialAngle);
-            setSpeeds(-speed, speed);
-        }).until(() -> Math.abs(io.getYaw() - initialAngle) >= setpoint)
-          .beforeStarting(() -> {
-              initialAngle = io.getYaw();
-              pidController = new PIDController(0.0, 0.0, 0.0); // Keep gains zero for now
-          });
+        return this.run(
+                        () -> {
+                            double speed = pidController.calculate(io.getYaw(), initialAngle);
+                            setSpeeds(-speed, speed);
+                        })
+                .until(() -> Math.abs(io.getYaw() - initialAngle) >= setpoint)
+                .beforeStarting(
+                        () -> {
+                            initialAngle = io.getYaw();
+                            pidController = new PIDController(0.0, 0.0, 0.0); // Keep gains zero for now
+                        });
     }
 
     // Send speeds to drivetrain
@@ -61,4 +62,5 @@ public class Drivetrain extends SubsystemBase {
         io.setArcadeSpeeds(forward, rotation);
     }
 }
-//okay so we pretty much just kept odemtry and PIDController among a few other things in here, while all the hardware went into the IO interface
+// okay so we pretty much just kept odemtry and PIDController among a few other things in here,
+// while all the hardware went into the IO interface
