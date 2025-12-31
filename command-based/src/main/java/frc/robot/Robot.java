@@ -12,9 +12,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
-<<<<<<< HEAD
+
 import frc.robot.subsystems.drivetrain.Drivetrain;
-=======
+
 import frc.robot.subsystems.simpleKraken.SimpleKraken;
 import java.io.File;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -23,9 +23,9 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
->>>>>>> 49db822976633100248ad90b179899b3083063ff
 
 public class Robot extends LoggedRobot {
+    public static final boolean isReplay = false;
     private Command autonomousCommand;
 
     private CommandXboxController controller;
@@ -40,15 +40,15 @@ public class Robot extends LoggedRobot {
 
         controller = new CommandXboxController(0);
 
-        drivetrain = new Drivetrain();
+        //drivetrain = new Drivetrain();
         intake = new Intake();
         shooter = new Shooter();
         simpleKraken = new SimpleKraken();
 
         // have the kraken follow the value of the right trigger by default
-        simpleKraken.setDefaultCommand(simpleKraken.runVoltage(controller::getRightTriggerAxis));
+        simpleKraken.setDefaultCommand(simpleKraken.runVoltage(controller::getLeftY));
 
-        // if no other command is running on the drivetrain, make it drive
+        /* // if no other command is running on the drivetrain, make it drive
         drivetrain.setDefaultCommand(
                 drivetrain.drive(controller::getLeftY, () -> -controller.getRightX()));
 
@@ -61,8 +61,9 @@ public class Robot extends LoggedRobot {
 
         // once the gamepiece has left the sensor for 0.5 seconds, stop shooting
         intake.gamePieceDetected.negate().debounce(0.5).onTrue(shooter.stop());
+    
+        */
     }
-
     private void configureAdvantageKit() {
         Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
         Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
@@ -82,7 +83,7 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
-        if (RobotBase.isReal()) {
+        if (RobotBase.isReal()  || !isReplay) {
             File logDir = new File(RobotBase.isReal() ? "/home/lvuser/logs" : "logs");
             if (!logDir.exists()) {
                 logDir.mkdirs();

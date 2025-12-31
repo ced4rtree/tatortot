@@ -1,13 +1,21 @@
 package frc.robot.subsystems.simpleKraken;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Temperature;
 
 public class SimpleKrakenIOReal implements SimpleKrakenIO {
     private TalonFX motor;
     private VoltageOut voltageRequest;
+    private StatusSignal<Angle> positionSignal;
+    private StatusSignal<AngularVelocity> velocitySignal;
+    private StatusSignal<Temperature> tempSignal;
 
     public SimpleKrakenIOReal() {
         motor = new TalonFX(1);
@@ -29,6 +37,9 @@ public class SimpleKrakenIOReal implements SimpleKrakenIO {
                 break;
             }
         }
+        positionSignal = motor.getPosition();
+        velocitySignal = motor.getVelocity();
+        tempSignal = motor.getDeviceTemp();
     }
 
     public void setVoltage(double voltage) {
@@ -37,5 +48,12 @@ public class SimpleKrakenIOReal implements SimpleKrakenIO {
 
         // tell the motor to use the voltage inside of the voltageRequest object
         motor.setControl(voltageRequest);
+    }
+
+    public void updateInputs(SimpleKrakenIOInputs inputs) {
+        BaseStatusSignal.refreshAll(positionSignal, velocitySignal, tempSignal);
+        inputs.motorVelocity = velocitySignal.getValueAsDouble();
+        inputs.motorPosition = positionSignal.getValueAsDouble();
+        inputs.motorTemp = tempSignal.getValueAsDouble();
     }
 }
