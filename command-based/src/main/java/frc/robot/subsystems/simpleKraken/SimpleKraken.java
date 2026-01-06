@@ -2,12 +2,14 @@ package frc.robot.subsystems.simpleKraken;
 
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
+import org.teamtators.tester.ManualTestGroup;
+import org.teamtators.tester.components.MotorTest;
+import org.teamtators.util.Subsystem;
 
-public class SimpleKraken extends SubsystemBase {
+public class SimpleKraken extends Subsystem {
     SimpleKrakenIOInputsAutoLogged inputs;
     SimpleKrakenIO io;
 
@@ -22,9 +24,17 @@ public class SimpleKraken extends SubsystemBase {
         }
     }
 
-    public void periodic() {
+    public void doPeriodic() {}
+
+    @Override
+    public void log() {
         io.updateInputs(inputs);
         Logger.processInputs("SimpleKraken", inputs);
+    }
+
+    @Override
+    public boolean getHealth() {
+        return true;
     }
 
     public Command runVoltage(DoubleSupplier voltageSupplier) {
@@ -33,5 +43,11 @@ public class SimpleKraken extends SubsystemBase {
                     double voltage = voltageSupplier.getAsDouble();
                     io.setVoltage(voltage);
                 });
+    }
+
+    @Override
+    public ManualTestGroup createManualTests() {
+        return new ManualTestGroup(
+                "SimpleKraken", new MotorTest("Motuh", (input) -> io.setVoltage(input)));
     }
 }
