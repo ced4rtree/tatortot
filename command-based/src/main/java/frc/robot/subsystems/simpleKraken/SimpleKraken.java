@@ -6,6 +6,7 @@ import frc.robot.Robot;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 import org.teamtators.tester.ManualTestGroup;
+import org.teamtators.tester.components.BinarySensorTest;
 import org.teamtators.tester.components.MotorTest;
 import org.teamtators.util.Subsystem;
 
@@ -24,6 +25,7 @@ public class SimpleKraken extends Subsystem {
         }
     }
 
+    @Override
     public void doPeriodic() {}
 
     @Override
@@ -48,6 +50,8 @@ public class SimpleKraken extends Subsystem {
     @Override
     public ManualTestGroup createManualTests() {
         return new ManualTestGroup(
-                "SimpleKraken", new MotorTest("Motuh", (input) -> io.setVoltage(input)));
+                "SimpleKraken",
+                new MotorTest("Motuh", (input) -> io.setVoltage(input)),
+                new BinarySensorTest("Motta (binary) (sensor)", () -> true));
     }
 }

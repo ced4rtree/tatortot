@@ -131,6 +131,9 @@ public class Robot extends LoggedRobot {
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
+        for (Subsystem subsystem : Subsystem.getSubsystemList()) {
+            subsystem.log();
+        }
     }
 
     @Override
