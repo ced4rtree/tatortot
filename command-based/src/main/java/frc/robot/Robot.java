@@ -15,14 +15,34 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.simpleKraken.SimpleKraken;
 import java.io.File;
+import java.util.ArrayList;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.teamtators.tester.ManualTestGroup;
+import org.teamtators.tester.ManualTester;
+import org.teamtators.util.DeviceHealthManager;
+import org.teamtators.util.RobotStateListener;
+import org.teamtators.util.Subsystem;
+import org.teamtators.util.XBOXController;
 
 public class Robot extends LoggedRobot {
+    // testing library stuff
+    public enum RobotControlMode {
+        Teleop,
+        Autonomous,
+        Disabled,
+        Test
+    }
+
+    private RobotControlMode currentControlMode = RobotControlMode.Disabled;
+    private RobotControlMode newControlMode = RobotControlMode.Disabled;
+    private ArrayList<RobotStateListener> stateListeners;
+    private ManualTester manualTester;
+
     public static final boolean isReplay = false;
 
     private Command autonomousCommand;
@@ -34,15 +54,23 @@ public class Robot extends LoggedRobot {
     private Shooter shooter;
     private SimpleKraken simpleKraken;
 
+    private static Robot instance;
+
     public Robot() {
+        instance = this;
+
         configureAdvantageKit();
 
         controller = new CommandXboxController(0);
+
+        stateListeners = new ArrayList<>();
 
         drivetrain = new Drivetrain();
         intake = new Intake();
         shooter = new Shooter();
         simpleKraken = new SimpleKraken();
+
+        manualTester = new ManualTester();
 
         // have the kraken follow the value of the right trigger by default
         simpleKraken.setDefaultCommand(simpleKraken.runVoltage(controller::getLeftY));
@@ -106,7 +134,13 @@ public class Robot extends LoggedRobot {
     }
 
     @Override
-    public void disabledInit() {}
+    public void disabledInit() {
+        CommandScheduler.getInstance().enable();
+        if (currentControlMode != RobotControlMode.Disabled) {
+            DeviceHealthManager.printHealth(currentControlMode);
+        }
+        updateStateListeners(RobotControlMode.Disabled);
+    }
 
     @Override
     public void disabledPeriodic() {}
@@ -116,6 +150,8 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
+        updateStateListeners(RobotControlMode.Autonomous);
+
         // autonomousCommand =
         //         drivetrain
         //                 .drive(() -> 0.5, () -> 0) // drive at half power straight forward
@@ -154,6 +190,7 @@ public class Robot extends LoggedRobot {
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
         }
+        updateStateListeners(RobotControlMode.Teleop);
     }
 
     @Override
@@ -164,12 +201,59 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void testInit() {
-        CommandScheduler.getInstance().cancelAll();
+        var commandScheduler = CommandScheduler.getInstance();
+        commandScheduler.cancelAll();
+        commandScheduler.disable();
+        updateStateListeners(RobotControlMode.Test);
+        configureTests();
+        manualTester.initialize();
     }
 
     @Override
-    public void testPeriodic() {}
+    public void testPeriodic() {
+        manualTester.execute();
+    }
 
     @Override
     public void testExit() {}
+
+    // stuff needed for our testing software
+    public void registerStateListener(RobotStateListener stateListener) {
+        stateListeners.add(stateListener);
+    }
+
+    public void unregisterStateListener(RobotStateListener stateListener) {
+        stateListeners.remove(stateListener);
+    }
+
+    public void updateStateListeners(RobotControlMode controlMode) {
+        newControlMode = controlMode;
+        if (currentControlMode != newControlMode) {
+            if (currentControlMode == RobotControlMode.Test) {
+                manualTester.end(true);
+            }
+            currentControlMode = newControlMode;
+        }
+        for (int i = 0; i < stateListeners.size(); i++) {
+            stateListeners.get(i).onEnterRobotState(controlMode);
+        }
+    }
+
+    protected void configureTests() {
+        System.out.println("Configuring tests");
+        manualTester.clearTestGroups();
+        manualTester.setController(new XBOXController(0));
+
+        for (Subsystem subsystem : Subsystem.getSubsystemList()) {
+            ManualTestGroup group = subsystem.createManualTests();
+            if (group != null) {
+                manualTester.registerTestGroup(group);
+                System.out.println(subsystem.getName());
+            }
+        }
+    }
+
+    public static Robot getInstance() {
+        return instance;
+    }
 }
